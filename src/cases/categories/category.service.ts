@@ -1,22 +1,64 @@
 import { Repository } from "typeorm";
-import { Category } from "./category.entity";
+import { Category } from "../spots/spot.entity";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateCategoryDTO } from "./dto/create-category";
+import { UpdateCategoryDTO } from "./dto/update-category";
 import { InjectRepository } from "@nestjs/typeorm";
 
+@Injectable()
 export class CategoryService {
 
     constructor(
-        @InjectRepository{Category}
+        @InjectRepository(Category) 
         private readonly categoryRepository: Repository<Category>
-    ) {}
-  findAll(): Promise<Category[]> {
-    return this.categoryRepository.find();
-  }
+    ) {
 
-  findOne(): Promise<Category> {}
+    }
 
-  create(): Promise<Category> {}
+    findAll(): Promise<Category[]> {
+        return this.categoryRepository.find({
+            order: { name: 'ASC' }
+        });
+    }
 
-  update(): Promise<Category> {}
+    async findOne(id: string): Promise<Category> {
+        const category = await this.categoryRepository.findOneBy({ id });
+        
+        if (!category) {
+            throw new NotFoundException('Categoria não encontrada!');
+        }
 
-  remove(): Promise<void> {}
+        return category;
+    }
+
+    create(dto: CreateCategoryDTO): Promise<Category> {
+        const category = this.categoryRepository.create({ 
+            ...dto,
+            name: dto.name,
+            active: true
+         })
+
+         return this.categoryRepository.save(category);
+    }
+
+    async update(id: string, dto: UpdateCategoryDTO): Promise<Category> {
+        const category = await this.findOne(id);
+
+        if (dto.name !== undefined) {
+            category.name = dto.name;
+        }
+
+        if (dto.active !== undefined) {
+            category.active = dto.active;
+        }
+
+        return this.categoryRepository.save(category);
+    }
+
+    async remove(id: string): Promise<void> {
+        const category = await this.findOne(id);
+
+        await this.categoryRepository.save(category);
+    }
+
 }
