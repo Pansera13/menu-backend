@@ -1,19 +1,9 @@
-import {
-  IsNotEmpty,
-  MaxLength,
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsUUID,
-  Min,
-  IsBoolean,
-  IsUrl,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, MaxLength, Min } from "class-validator";
 
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(255)
+  @MaxLength(60)
   name: string;
 
   @IsOptional()
@@ -30,9 +20,9 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsBoolean()
-  active: boolean;
+  active?:boolean;
 
   @IsOptional()
   @IsUrl({ require_protocol: true })
-  picture: string;
+  picture?: string;
 }

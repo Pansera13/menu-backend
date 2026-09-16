@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { Category } from "../spots/spot.entity";
+import { Category } from "./category.entity";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateCategoryDTO } from "./dto/create-category";
 import { UpdateCategoryDTO } from "./dto/update-category";

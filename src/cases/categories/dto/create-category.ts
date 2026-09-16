@@ -1,8 +1,8 @@
-import { IsNotEmpty, MaxLength } from "class-validator";
+import { IsNotEmpty, IsString, MaxLength } from "class-validator";
 
 export class CreateCategoryDTO{
     @IsString()
     @IsNotEmpty()
-    @MaxLength()
+    @MaxLength(60)
     name :string;
 }

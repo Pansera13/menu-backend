@@ -1,45 +1,44 @@
-import  Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
-import { get } from 'http';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { CategoryService } from './category.service';
+import { Category } from './category.entity';
 import { CreateCategoryDTO } from './dto/create-category';
-import { Category } from '../spots/spot.entity';
-import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { UpdateCategoryDTO } from './dto/update-category';
 
 @Controller('categories')
 export class CategoryController {
- 
+
     constructor(private readonly service: CategoryService) {}
 
-    @get()
-    findAll() : Promise<Category[]> {
-
+    @Get()
+    findAll(): Promise<Category[]> {
+        return this.service.findAll();
     }
 
-    @get(':id')
+    @Get(':id')
     findOne(
         @Param('id', ParseUUIDPipe)
         id: string): Promise<Category> {
         return this.service.findOne(id);
-
     }
 
     @Post()
     create(
-        @Body() 
+        @Body()
         dto: CreateCategoryDTO): Promise<Category> {
         return this.service.create(dto);
     }
 
     @Patch(':id')
-    update(dto: UpdateCategoryDTO): Promise<Category> {
-    @Param('id', ParseUUIDPipe)
-        id: string
+    update(
+        @Param('id', ParseUUIDPipe)
+        id: string,
         @Body()
         dto: UpdateCategoryDTO): Promise<Category> {
-        return this.service.update(id,dto);
+        return this.service.update(id, dto);
     }
 
     @Delete(':id')
-    @httpCode(httpStatus.NO_CONTENT)
+    @HttpCode(HttpStatus.NO_CONTENT)
     remove(
         @Param('id', ParseUUIDPipe)
         id: string): Promise<void> {

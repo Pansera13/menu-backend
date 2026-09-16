@@ -1,64 +1,63 @@
 import { Repository } from "typeorm";
 import { Spot } from "./spot.entity";
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateSpotDTO } from "./dto/create-spot";
-import { UpdateSpotDTO } from "./dto/update-spot";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateSpotDto } from "./dto/create-spot";
+import { UpdateSpotDto } from "./dto/update-spot";
 
 @Injectable()
 export class SpotService {
 
-    constructor(
-        @InjectRepository(Spot) 
-        private readonly categoryRepository: Repository<Spot>
-    ) {
+  constructor( 
+    @InjectRepository(Spot)
+    private readonly spotRepository: Repository<Spot> 
+  ) {}
 
+  findAll(): Promise<Spot[]> {
+    return this.spotRepository.find({
+      order: { name: 'ASC' }
+    });
+  }
+
+  async findOne(id: string): Promise<Spot> {
+    const spot = await this.spotRepository.findOneBy({ id });
+
+    if (!spot) {
+      throw new NotFoundException('Categoria não encontrada!');
     }
 
-    findAll(): Promise<Spot[]> {
-        return this.categoryRepository.find({
-            order: { name: 'ASC' }
-        });
+    return spot;
+  }
+
+  create(dto: CreateSpotDto): Promise<Spot> {
+
+    const spot = this.spotRepository.create({
+      ...dto,
+      name: dto.name,
+      active: true
+    });
+
+    return this.spotRepository.save(spot);
+  }
+
+  async update(id: string, dto: UpdateSpotDto): Promise<Spot> {
+    const spot = await this.findOne(id);
+
+    if (dto.name !== undefined) {
+      spot.name = dto.name;
     }
 
-    async findOne(id: string): Promise<Spot> {
-        const category = await this.categoryRepository.findOneBy({ id });
-        
-        if (!category) {
-            throw new NotFoundException('Categoria não encontrada!');
-        }
-
-        return category;
+    if (dto.active !== undefined) {
+      spot.active = dto.active;
     }
 
-    create(dto: CreateSpotDTO): Promise<Spot> {
-        const category = this.categoryRepository.create({ 
-            ...dto,
-            name: dto.name,
-            active: true
-         })
+    return this.spotRepository.save(spot);
+  }
 
-         return this.categoryRepository.save(category);
-    }
+  async remove(id:string): Promise<void> {
+    const spot = await this.findOne(id);
 
-    async update(id: string, dto: UpdateSpotDTO): Promise<Spot> {
-        const category = await this.findOne(id);
-
-        if (dto.name !== undefined) {
-            category.name = dto.name;
-        }
-
-        if (dto.active !== undefined) {
-            category.active = dto.active;
-        }
-
-        return this.categoryRepository.save(category);
-    }
-
-    async remove(id: string): Promise<void> {
-        const category = await this.findOne(id);
-
-        await this.categoryRepository.save(category);
-    }
+    await this.spotRepository.remove(spot);
+  }
 
 }

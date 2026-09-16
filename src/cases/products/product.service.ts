@@ -1,52 +1,53 @@
-import { Repository } from 'typeorm';
-import { Products } from '../categories/product.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Category } from '../categories/category.entity';
+import { Repository } from "typeorm";
+import { Product } from "./product.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { CreateProductDto } from "./dto/create-product";
+import { UpdateProductDto } from "./dto/update-product";
+import { Category } from "../categories/category.entity";
 
 @Injectable()
 export class ProductService {
-  constructor(
+
+  constructor( 
     @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
+    private readonly categoryRepository: Repository<Category>, 
 
     @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+    private readonly productRepository: Repository<Product> 
   ) {}
 
   findAll(): Promise<Product[]> {
     return this.productRepository.find({
       order: { name: 'ASC' },
-      relations: { category: true },
+      relations: { category: true }
     });
   }
 
   async findOne(id: string): Promise<Product> {
-    const product = await this.productRepository.findOne({
-      relations: { category: true },
+    const product = await this.productRepository.findOne({ 
       where: { id },
+      relations: { category: true }
     });
 
     if (!product) {
-      throw new NotFoundException('Categoria não encontrada!');
+      throw new NotFoundException('Produto não encontrado!');
     }
 
     return product;
   }
 
-  create(dto: CreateProductDto): Promise<Product> {
+  async create(dto: CreateProductDto): Promise<Product> {
 
-    //10-20
-    //const category
+    const category = dto.categoryId ? await this.getActiveCategory(dto.categoryId) : null;
 
     const product = this.productRepository.create({
       name: dto.name.trim(),
-      description: dto.description?.trim(),
+      description: dto.description,
       price: dto.price,
       picture: dto.picture,
       active: true,
+      category
     });
 
     return this.productRepository.save(product);
@@ -59,27 +60,43 @@ export class ProductService {
       product.name = dto.name;
     }
 
+    if (dto.description !== undefined) {
+      product.description = dto.description;
+    }
+
+    if (dto.price !== undefined) {
+      product.price = dto.price;
+    }
+
+    if (dto.picture !== undefined) {
+      product.picture = dto.picture;
+    }
+
     if (dto.active !== undefined) {
       product.active = dto.active;
+    }
+
+    if (dto.categoryId !== undefined) {
+      product.category = dto.categoryId ? await this.getActiveCategory(dto.categoryId) : null;
     }
 
     return this.productRepository.save(product);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id:string): Promise<void> {
     const product = await this.findOne(id);
 
     await this.productRepository.remove(product);
   }
 
-  private async getActiveCategory(id: string): Promise<Category> {
+  private async getActiveCategory(id:  string): Promise<Category> {
     const category = await this.categoryRepository.findOneBy({
       id,
-      active: true,
-    });
+      active: true
+    })
 
     if (!category) {
-      throw new NotFoundException('Nenhuma categoria ativa foi encontrada');
+      throw new NotFoundException('Nenhum categoria ativa foi encontrada!');
     }
 
     return category;
